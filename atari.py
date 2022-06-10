@@ -3,7 +3,7 @@ import torch
 import torchvision.transforms as T
 from PIL import Image
 from settings import *
-
+#000000
 
 frame_proc = T.Compose([T.ToPILImage(),
                         T.Grayscale(), \
