@@ -13,21 +13,23 @@ from collections import deque
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--train_times", type=int, default=1)
+parser.add_argument("--SEED", type=int, default=50)
 
-parser.add_argument("--epsilon", type=float, default=0.9)
+parser.add_argument("--epsilon", type=float, default=0.05)
 parser.add_argument("--learning_rate", type=float, default=0.0002)
 parser.add_argument("--GAMMA", type=float, default=0.97)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--capacity", type=int, default=10000)
 
-parser.add_argument("--hidden_layer_size", type=int, default=10)
+parser.add_argument("--inner_layer_size", type=int, default=256)
+parser.add_argument("--hidden_layer_size", type=int, default=512)
 
-parser.add_argument("--episode", type=int, default=20)
+parser.add_argument("--episode", type=int, default=5)
 parser.add_argument("--timesteps", type=int, default=500)
 # total 2049 steps in Freeway
 parser.add_argument("--learn_threshold", type=int, default=450)
 
-parser.add_argument("--test_times", type=int, default=2)
+parser.add_argument("--test_times", type=int, default=1)
 args = parser.parse_args()
 
 total_rewards = []
@@ -83,12 +85,14 @@ class Net(nn.Module):
     The structure of the Neural Network calculating Q values of each state.
     '''
 
-    def __init__(self,  num_actions, hidden_layer_size=args.hidden_layer_size):
+    def __init__(self, num_actions, hidden_layer_size=args.hidden_layer_size):
         super(Net, self).__init__()
-        self.input_state = 100800  # the dimension of state space
+        self.input_state = 128  # the dimension of state space
         self.num_actions = num_actions  # the dimension of action space
-        self.fc1 = nn.Linear(self.input_state, 32)  # input layer
-        self.fc2 = nn.Linear(32, hidden_layer_size)  # hidden layer
+        self.fc1 = nn.Linear(
+            self.input_state, args.inner_layer_size)  # input layer
+        self.fc2 = nn.Linear(args.inner_layer_size,
+                             hidden_layer_size)  # hidden layer
         self.fc3 = nn.Linear(hidden_layer_size, num_actions)  # output layer
 
     def forward(self, states):
@@ -101,10 +105,6 @@ class Net(nn.Module):
         Return:
             q_values: a batch size of q_values
         '''
-        if states.size() == (32, 100800):
-            states = states.view(32, 100800)
-        else:
-            states = states.view(1, 100800)
 
         # print(states.shape)
         x = F.relu(self.fc1(states))
@@ -200,7 +200,7 @@ class Agent():
         q_value = torch.max(q_eval, 0)[0].data.numpy()[0]
         if best_q_value < q_value:
             best_q_value = q_value
-            print(q_value)
+            # print(q_value)
             torch.save(self.target_net.state_dict(), "./Tables/DQN.pt")
 
     def choose_action(self, state):
@@ -222,17 +222,23 @@ class Agent():
             x = torch.unsqueeze(torch.FloatTensor(state), 0)
             r = np.random.rand()
             if r < self.epsilon:
-                action = 1
-                #action = np.random.randint(0, self.n_actions)
+                #action = 1
+                p = random.uniform(0, 1)
+                if (p < 0.5):
+                    action = np.random.randint(0, self.n_actions)
+                else:
+                    action = 1
+                #print("random ", action)
             else:
                 actions_value = self.evaluate_net(x)
                 print(actions_value)
                 #print(torch.max(actions_value, 1)[1].data.numpy())
                 action = torch.max(actions_value, 1)[1].data.numpy()[0]
-                print("action: ", action)
+                # print("action: ", action)
                 # action = torch.max(action, 1)[1]
                 # action = torch.max(action, 1)[1].data.numpy()[0]
-        return action
+                # print(action)
+            return action
 
     def check_max_Q(self):
         """
@@ -247,8 +253,8 @@ class Agent():
         Return:
             max_q: the max Q value of initial state(self.env.reset())
         """
-        # Begin your code
-        x = torch.unsqueeze(torch.FloatTensor(self.env.reset()), 0)
+        state = self.env.reset()
+        x = torch.unsqueeze(torch.FloatTensor(state), 0)
         q_values = self.target_net(x)
         max_q = torch.max(q_values, 1)[0].data.numpy()[0]
         return max_q
@@ -263,16 +269,14 @@ def test(env):
         state = env.reset()
         count = 0
         while True:
-            n_state = state.ravel()
-            # print(torch.FloatTensor(n_state).shape)
             Q = testing_agent.target_net.forward(
-                torch.FloatTensor(n_state)).squeeze(0).detach()
+                torch.FloatTensor(state)).squeeze(0).detach()
             action = int(torch.argmax(Q).numpy())
             next_state, reward, done, _ = env.step(action)
             count += reward
             if done:
                 rewards.append(reward)
-                print(reward)
+                print(count)
                 break
             state = next_state
     print(f"reward: {np.mean(count)}")
@@ -289,17 +293,16 @@ def train(env):
         while iteration_time < args.timesteps:
             iteration_time += 1
             agent.count += 1
-            n_state = state.ravel()
-            action = agent.choose_action(n_state)
+            action = agent.choose_action(state)
             next_state, reward, done, _ = env.step(action)
             count += reward
             # print(type(reward), " ", reward)
             # print(type(done), " ", done)
-            n_next_state = next_state.ravel()
-            agent.buffer.insert(n_state, int(action), reward,
-                                n_next_state, int(done))
+            if iteration_time == args.timesteps:
+                done = 1
+            agent.buffer.insert(state, int(action), reward,
+                                next_state, int(done))
             if agent.count >= args.learn_threshold:
-                agent.learning_rate = 0.05
                 agent.learn()
             # if done:
                 # rewards.append(reward)
@@ -308,9 +311,26 @@ def train(env):
     total_rewards.append(rewards)
 
 
+def seed(seed=20):
+    '''
+    It is very IMPORTENT to set random seed for reproducibility of your result!
+    '''
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
 if __name__ == "__main__":
-    env = gym.make('Freeway-v4',  render_mode='human')
+
+    env = gym.make('Freeway-v4',  obs_type='ram', render_mode='human')
     # env = gym.make('Freeway-v4')
+
+    SEED = args.SEED
+    seed(SEED)
+    env.seed(SEED)
+    env.action_space.seed(SEED)
+
     env.reset()
     '''
         action  '0': stay in place
@@ -331,9 +351,9 @@ if __name__ == "__main__":
 
     '''for _ in range(1000):
         action = env.action_space.sample()
-        print(type(action))
+        # print(env.action_space)
         next_state, reward, done, _ = env.step(action)  # take a random action
-        print(next_state.shape)  # (210, 160, 3)
+        # print(next_state.shape)  # (210, 160, 3)
         print("-----------")'''
 
     np.save("./Rewards/DQN_rewards.npy", np.array(total_rewards))
