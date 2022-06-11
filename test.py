@@ -14,18 +14,18 @@ from collections import deque
 parser = argparse.ArgumentParser()
 parser.add_argument("--train_times", type=int, default=1)
 
-parser.add_argument("--epsilon", type=float, default=0.05)
+parser.add_argument("--epsilon", type=float, default=0.9)
 parser.add_argument("--learning_rate", type=float, default=0.0002)
 parser.add_argument("--GAMMA", type=float, default=0.97)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--capacity", type=int, default=10000)
 
-parser.add_argument("--hidden_layer_size", type=int, default=50)
+parser.add_argument("--hidden_layer_size", type=int, default=10)
 
 parser.add_argument("--episode", type=int, default=20)
 parser.add_argument("--timesteps", type=int, default=500)
 # total 2049 steps in Freeway
-parser.add_argument("--learn_threshold", type=int, default=300)
+parser.add_argument("--learn_threshold", type=int, default=450)
 
 parser.add_argument("--test_times", type=int, default=2)
 args = parser.parse_args()
@@ -229,6 +229,7 @@ class Agent():
                 print(actions_value)
                 #print(torch.max(actions_value, 1)[1].data.numpy())
                 action = torch.max(actions_value, 1)[1].data.numpy()[0]
+                print("action: ", action)
                 # action = torch.max(action, 1)[1]
                 # action = torch.max(action, 1)[1].data.numpy()[0]
         return action
@@ -298,6 +299,7 @@ def train(env):
             agent.buffer.insert(n_state, int(action), reward,
                                 n_next_state, int(done))
             if agent.count >= args.learn_threshold:
+                agent.learning_rate = 0.05
                 agent.learn()
             # if done:
                 # rewards.append(reward)
