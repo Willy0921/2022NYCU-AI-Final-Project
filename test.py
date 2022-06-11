@@ -23,8 +23,8 @@ parser.add_argument("--capacity", type=int, default=10000)
 parser.add_argument("--inner_layer_size", type=int, default=256)
 parser.add_argument("--hidden_layer_size", type=int, default=512)
 
-parser.add_argument("--episode", type=int, default=500)
-parser.add_argument("--timesteps", type=int, default=2049)
+parser.add_argument("--episode", type=int, default=1)
+#parser.add_argument("--timesteps", type=int, default=2049)
 # total 2049 steps in Freeway
 parser.add_argument("--learn_threshold", type=int, default=10245)
 
@@ -218,6 +218,7 @@ class Agent():
                     action = 1
             else:
                 actions_value = self.evaluate_net(x)
+                print(actions_value)
                 action = torch.max(actions_value, 1)[1].data.numpy()[0]
             return action
 
@@ -269,23 +270,21 @@ def train(env):
     rewards = []
     for _ in tqdm(range(args.episode)):
         state = env.reset()
-        iteration_time = 0
         score = 0
-        while iteration_time < args.timesteps:
-            iteration_time += 1
+        if agent.count >= args.learn_threshold:
+            agent.epsilon = 0.05
+        while True:
             agent.count += 1
             action = agent.choose_action(state)
             next_state, reward, done, _ = env.step(action)
             score += reward
-            if iteration_time == args.timesteps:
-                done = 1
             agent.buffer.insert(state, int(action), reward *
                                 args.reward_ratio, next_state, int(done))
             if agent.count >= args.learn_threshold:
-                agent.epsilon = 0.05
                 agent.learn()
-            # if done:
-                # rewards.append(reward)
+            if done:
+                rewards.append(score)
+                break
             state = next_state
 
         global best_score
@@ -294,7 +293,6 @@ def train(env):
             print(score)
             torch.save(agent.target_net.state_dict(), "./Tables/DQN.pt")
 
-        rewards.append(score)
     total_rewards.append(rewards)
 
 
@@ -311,21 +309,14 @@ if __name__ == "__main__":
     if not os.path.exists("./Tables"):
         os.mkdir("./Tables")
 
-    '''for i in range(args.train_times):
+    for i in range(args.train_times):
         print(f"#{i + 1} training progress")
-        train(env)'''
+        train(env)
 
     test(env)
 
     if not os.path.exists("./Rewards"):
         os.mkdir("./Rewards")
-
-    '''for _ in range(1000):
-        action = env.action_space.sample()
-        # print(env.action_space)
-        next_state, reward, done, _ = env.step(action)  # take a random action
-        # print(next_state.shape)  # (210, 160, 3)
-        print("-----------")'''
 
     np.save("./Rewards/DQN_rewards.npy", np.array(total_rewards))
 
