@@ -13,7 +13,6 @@ from collections import deque
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--train_times", type=int, default=1)
-parser.add_argument("--SEED", type=int, default=156)
 
 parser.add_argument("--epsilon", type=float, default=0.8)
 parser.add_argument("--learning_rate", type=float, default=0.0002)
@@ -24,18 +23,18 @@ parser.add_argument("--capacity", type=int, default=10000)
 parser.add_argument("--inner_layer_size", type=int, default=256)
 parser.add_argument("--hidden_layer_size", type=int, default=512)
 
-parser.add_argument("--episode", type=int, default=50)
-parser.add_argument("--timesteps", type=int, default=500)
+parser.add_argument("--episode", type=int, default=500)
+parser.add_argument("--timesteps", type=int, default=2049)
 # total 2049 steps in Freeway
-parser.add_argument("--learn_threshold", type=int, default=2500)
+parser.add_argument("--learn_threshold", type=int, default=10245)
 
-parser.add_argument("--test_times", type=int, default=1)
-parser.add_argument("--reward_ratio", type=int, default=1)
+parser.add_argument("--test_times", type=int, default=5)
+parser.add_argument("--reward_ratio", type=int, default=1000)
 
 args = parser.parse_args()
 
 total_rewards = []
-best_q_value = float('-inf')
+best_score = float('-inf')
 
 
 class replay_buffer():
@@ -181,11 +180,6 @@ class Agent():
         b_done = torch.IntTensor(np.asarray(
             b_memory[4])).view(self.batch_size, 1)
 
-        # b_state = b_state.view(self.batch_size, 100800)
-
-        # print(b_state.shape)
-        # print(b_action.shape)
-
         q_eval = self.evaluate_net(b_state).gather(1, b_action)
         q_next = self.target_net(b_next_state).detach()
         q_target = b_reward + self.gamma * \
@@ -197,13 +191,6 @@ class Agent():
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-
-        global best_q_value
-        q_value = torch.max(q_eval, 0)[0].data.numpy()[0]
-        if best_q_value < q_value:
-            best_q_value = q_value
-            # print(q_value)
-            torch.save(self.target_net.state_dict(), "./Tables/DQN.pt")
 
     def choose_action(self, state):
         """
@@ -231,13 +218,7 @@ class Agent():
                     action = 1
             else:
                 actions_value = self.evaluate_net(x)
-                print(actions_value)
-                #print(torch.max(actions_value, 1)[1].data.numpy())
                 action = torch.max(actions_value, 1)[1].data.numpy()[0]
-                # print("action: ", action)
-                # action = torch.max(action, 1)[1]
-                # action = torch.max(action, 1)[1].data.numpy()[0]
-                # print(action)
             return action
 
     def check_max_Q(self):
@@ -279,8 +260,8 @@ def test(env):
                 print(count)
                 break
             state = next_state
-    print(f"reward: {np.mean(count)}")
-    print(f"max Q:{testing_agent.check_max_Q()}")
+    print(f"reward: {np.mean(rewards)}")
+    print(f"max :{testing_agent.check_max_Q()}")
 
 
 def train(env):
@@ -289,15 +270,13 @@ def train(env):
     for _ in tqdm(range(args.episode)):
         state = env.reset()
         iteration_time = 0
-        count = 0
+        score = 0
         while iteration_time < args.timesteps:
             iteration_time += 1
             agent.count += 1
             action = agent.choose_action(state)
             next_state, reward, done, _ = env.step(action)
-            count += reward
-            # print(type(reward), " ", reward)
-            # print(type(done), " ", done)
+            score += reward
             if iteration_time == args.timesteps:
                 done = 1
             agent.buffer.insert(state, int(action), reward *
@@ -308,29 +287,20 @@ def train(env):
             # if done:
                 # rewards.append(reward)
             state = next_state
-        rewards.append(count)
+
+        global best_score
+        if best_score < score:
+            best_score = score
+            print(score)
+            torch.save(agent.target_net.state_dict(), "./Tables/DQN.pt")
+
+        rewards.append(score)
     total_rewards.append(rewards)
-
-
-def seed(seed=20):
-    '''
-    It is very IMPORTENT to set random seed for reproducibility of your result!
-    '''
-    random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
 
 
 if __name__ == "__main__":
 
     env = gym.make('Freeway-v4',  obs_type='ram', render_mode='human')
-    # env = gym.make('Freeway-v4')
-
-    SEED = args.SEED
-    seed(SEED)
-    env.seed(SEED)
-    env.action_space.seed(SEED)
 
     env.reset()
     '''
@@ -341,9 +311,9 @@ if __name__ == "__main__":
     if not os.path.exists("./Tables"):
         os.mkdir("./Tables")
 
-    for i in range(args.train_times):
+    '''for i in range(args.train_times):
         print(f"#{i + 1} training progress")
-        train(env)
+        train(env)'''
 
     test(env)
 
