@@ -13,9 +13,9 @@ from collections import deque
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--train_times", type=int, default=1)
-parser.add_argument("--SEED", type=int, default=50)
+parser.add_argument("--SEED", type=int, default=156)
 
-parser.add_argument("--epsilon", type=float, default=0.05)
+parser.add_argument("--epsilon", type=float, default=0.8)
 parser.add_argument("--learning_rate", type=float, default=0.0002)
 parser.add_argument("--GAMMA", type=float, default=0.97)
 parser.add_argument("--batch_size", type=int, default=32)
@@ -24,12 +24,14 @@ parser.add_argument("--capacity", type=int, default=10000)
 parser.add_argument("--inner_layer_size", type=int, default=256)
 parser.add_argument("--hidden_layer_size", type=int, default=512)
 
-parser.add_argument("--episode", type=int, default=5)
+parser.add_argument("--episode", type=int, default=50)
 parser.add_argument("--timesteps", type=int, default=500)
 # total 2049 steps in Freeway
-parser.add_argument("--learn_threshold", type=int, default=450)
+parser.add_argument("--learn_threshold", type=int, default=2500)
 
 parser.add_argument("--test_times", type=int, default=1)
+parser.add_argument("--reward_ratio", type=int, default=1)
+
 args = parser.parse_args()
 
 total_rewards = []
@@ -222,13 +224,11 @@ class Agent():
             x = torch.unsqueeze(torch.FloatTensor(state), 0)
             r = np.random.rand()
             if r < self.epsilon:
-                #action = 1
                 p = random.uniform(0, 1)
-                if (p < 0.5):
+                if (p < 0.3):
                     action = np.random.randint(0, self.n_actions)
                 else:
                     action = 1
-                #print("random ", action)
             else:
                 actions_value = self.evaluate_net(x)
                 print(actions_value)
@@ -300,13 +300,14 @@ def train(env):
             # print(type(done), " ", done)
             if iteration_time == args.timesteps:
                 done = 1
-            agent.buffer.insert(state, int(action), reward,
-                                next_state, int(done))
+            agent.buffer.insert(state, int(action), reward *
+                                args.reward_ratio, next_state, int(done))
             if agent.count >= args.learn_threshold:
+                agent.epsilon = 0.05
                 agent.learn()
             # if done:
                 # rewards.append(reward)
-        state = next_state
+            state = next_state
         rewards.append(count)
     total_rewards.append(rewards)
 
