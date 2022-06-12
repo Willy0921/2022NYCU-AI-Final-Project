@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--test_times", type=int, default=10)
 parser.add_argument("--algorithm", type=str, default="DQN")
 parser.add_argument("--compare", type=str, default="traintimesXepisode")
-parser.add_argument("--file", type=str, default="DQN_traintimesXepisode_3x100")
+parser.add_argument("--file", type=str, default="DQN_traintimesXepisode_1x300")
 args = parser.parse_args()
 
 

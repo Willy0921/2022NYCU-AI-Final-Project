@@ -36,9 +36,9 @@ def DQN():
 
     initialize_plot()
 
-    plt.plot([i for i in range(args.episode)],
+    plt.plot([i for i in range(len(DQN_Rewards))],
              DQN_avg, label='DQN', color='blue')
-    plt.fill_between([i for i in range(args.episode)], DQN_avg +
+    plt.fill_between([i for i in range(len(DQN_Rewards))], DQN_avg +
                      DQN_std, DQN_avg-DQN_std, facecolor='lightblue')
     plt.legend(loc="best")
     plt.savefig(output_path)
