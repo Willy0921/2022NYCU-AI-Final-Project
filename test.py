@@ -287,7 +287,7 @@ def train(env):
             state = next_state
 
         global best_score
-        if best_score < score:
+        if best_score <= score:
             best_score = score
             # print(score)
             torch.save(agent.target_net.state_dict(), "./Tables/DQN.pt")
