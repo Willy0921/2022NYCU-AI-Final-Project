@@ -12,7 +12,7 @@ from ale_py.roms import Freeway
 from collections import deque
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--train_times", type=int, default=1)
+parser.add_argument("--train_times", type=int, default=2)
 
 parser.add_argument("--epsilon", type=float, default=0.8)
 parser.add_argument("--learning_rate", type=float, default=0.0002)
@@ -23,12 +23,11 @@ parser.add_argument("--capacity", type=int, default=10000)
 parser.add_argument("--inner_layer_size", type=int, default=256)
 parser.add_argument("--hidden_layer_size", type=int, default=512)
 
-parser.add_argument("--episode", type=int, default=1)
-#parser.add_argument("--timesteps", type=int, default=2049)
+parser.add_argument("--episode", type=int, default=150)
 # total 2049 steps in Freeway
 parser.add_argument("--learn_threshold", type=int, default=10245)
 
-parser.add_argument("--test_times", type=int, default=5)
+parser.add_argument("--test_times", type=int, default=1)
 parser.add_argument("--reward_ratio", type=int, default=1000)
 
 args = parser.parse_args()
@@ -218,7 +217,7 @@ class Agent():
                     action = 1
             else:
                 actions_value = self.evaluate_net(x)
-                print(actions_value)
+                # print(actions_value)
                 action = torch.max(actions_value, 1)[1].data.numpy()[0]
             return action
 
@@ -257,7 +256,7 @@ def test(env):
             next_state, reward, done, _ = env.step(action)
             count += reward
             if done:
-                rewards.append(reward)
+                rewards.append(count)
                 print(count)
                 break
             state = next_state
@@ -290,7 +289,7 @@ def train(env):
         global best_score
         if best_score < score:
             best_score = score
-            print(score)
+            # print(score)
             torch.save(agent.target_net.state_dict(), "./Tables/DQN.pt")
 
     total_rewards.append(rewards)
@@ -298,7 +297,7 @@ def train(env):
 
 if __name__ == "__main__":
 
-    env = gym.make('Freeway-v4',  obs_type='ram', render_mode='human')
+    env = gym.make('Freeway-v4',  obs_type='ram')
 
     env.reset()
     '''
@@ -312,7 +311,7 @@ if __name__ == "__main__":
     for i in range(args.train_times):
         print(f"#{i + 1} training progress")
         train(env)
-
+    print("best score in training progress: ", best_score)
     test(env)
 
     if not os.path.exists("./Rewards"):
