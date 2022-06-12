@@ -8,37 +8,51 @@ from ale_py import ALEInterface
 from ale_py.roms import Freeway
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--test_times", type=int, default=100)
-parser.add_argument("--path", type=str, default="./Test_modals/")
-parser.add_argument("--algorithm", type=str, default="DQN/")
-parser.add_argument("--file", type=str,
-                    default="DQN_traintimesXepisode_1x300.pt")
+parser.add_argument("--test_times", type=int, default=3)
+parser.add_argument("--algorithm", type=str, default="DQN")
+parser.add_argument("--compare", type=str, default="rewards_ratio")
+parser.add_argument("--file", type=str, default="DQN_rewards_ratio_1000")
 args = parser.parse_args()
 
 
 def test(env):
+
+    read_file = args.file + ".pt"
+    output_file = args.file + ".txt"
+    read_path = "./Train_data/" + args.algorithm + "/tables/" + read_file
+    output_path = "./Test_results/" + args.algorithm + \
+        "/" + args.compare + "/" + output_file
+
+    f = open(output_path, 'w')
+    f.write(args.file + '\n')
     env.reset()
     rewards = []
     testing_agent = Agent(env)
     testing_agent.target_net.load_state_dict(
-        torch.load(args.path + args.algorithm + args.file))
+        torch.load(read_path))
+
     for i in range(args.test_times):
         print(f"#{i + 1} testing progress")
         state = env.reset()
-        count = 0
+        score = 0
         while True:
             Q = testing_agent.target_net.forward(
                 torch.FloatTensor(state)).squeeze(0).detach()
             action = int(torch.argmax(Q).numpy())
             next_state, reward, done, _ = env.step(action)
-            count += reward
+            score += reward
             if done:
-                rewards.append(count)
-                print(count)
+                rewards.append(score)
+                f.write(str(score) + ' ')
+                print("score: ", score)
                 break
             state = next_state
-    print(f"reward: {np.mean(rewards)}")
-    print(f"max :{testing_agent.check_max_Q()}")
+    avg_reward = np.mean(rewards)
+    f.write('\n')
+    f.write(str(avg_reward))
+    print("average reward: ", avg_reward)
+    #print(f"max :{testing_agent.check_max_Q()}")
+    f.close()
 
 
 if __name__ == "__main__":

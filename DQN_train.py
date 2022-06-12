@@ -12,6 +12,7 @@ from ale_py.roms import Freeway
 from collections import deque
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--file", type=str, default="DQN_rewardsratio_1")
 parser.add_argument("--train_times", type=int, default=1)
 
 parser.add_argument("--epsilon", type=float, default=0.8)
@@ -26,8 +27,6 @@ parser.add_argument("--hidden_layer_size", type=int, default=512)
 parser.add_argument("--episode", type=int, default=250)
 # total 2049 steps in Freeway
 parser.add_argument("--learn_threshold", type=int, default=10245)
-
-parser.add_argument("--test_times", type=int, default=1)
 parser.add_argument("--reward_ratio", type=int, default=1000)
 
 args = parser.parse_args()
@@ -106,7 +105,6 @@ class Net(nn.Module):
             q_values: a batch size of q_values
         '''
 
-        # print(states.shape)
         x = F.relu(self.fc1(states))
         x = F.relu(self.fc2(x))
         q_values = self.fc3(x)
@@ -206,7 +204,6 @@ class Agent():
             action: the chosen action.
         """
         with torch.no_grad():
-            # print(torch.FloatTensor(state).shape)
             x = torch.unsqueeze(torch.FloatTensor(state), 0)
             r = np.random.rand()
             if r < self.epsilon:
@@ -217,51 +214,8 @@ class Agent():
                     action = 1
             else:
                 actions_value = self.evaluate_net(x)
-                # print(actions_value)
                 action = torch.max(actions_value, 1)[1].data.numpy()[0]
             return action
-
-    def check_max_Q(self):
-        """
-        - Implement the function calculating the max Q value of initial state(self.env.reset()).
-        - Check the max Q value of initial state
-
-        Parameter:
-            self: the agent itself.
-            (Don't pass additional parameters to the function.)
-            (All you need have been initialized in the constructor.)
-
-        Return:
-            max_q: the max Q value of initial state(self.env.reset())
-        """
-        state = self.env.reset()
-        x = torch.unsqueeze(torch.FloatTensor(state), 0)
-        q_values = self.target_net(x)
-        max_q = torch.max(q_values, 1)[0].data.numpy()[0]
-        return max_q
-
-
-def test(env):
-    rewards = []
-    testing_agent = Agent(env)
-    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN.pt"))
-    for i in range(args.test_times):
-        print(f"#{i + 1} testing progress")
-        state = env.reset()
-        count = 0
-        while True:
-            Q = testing_agent.target_net.forward(
-                torch.FloatTensor(state)).squeeze(0).detach()
-            action = int(torch.argmax(Q).numpy())
-            next_state, reward, done, _ = env.step(action)
-            count += reward
-            if done:
-                rewards.append(count)
-                print(count)
-                break
-            state = next_state
-    print(f"reward: {np.mean(rewards)}")
-    print(f"max :{testing_agent.check_max_Q()}")
 
 
 def train(env):
@@ -289,8 +243,8 @@ def train(env):
         global best_score
         if best_score <= score:
             best_score = score
-            # print(score)
-            torch.save(agent.target_net.state_dict(), "./Tables/DQN.pt")
+            torch.save(agent.target_net.state_dict(), "./Train_data/DQN/tables/" +
+                       args.file + "pt")
 
     total_rewards.append(rewards)
 
@@ -301,22 +255,23 @@ if __name__ == "__main__":
 
     env.reset()
     '''
-        action  '0': stay in place
-                '1': go forward
-                '2': go backward
+        action_sapce:
+            '0': stay in place
+            '1': go forward
+            '2': go backward
     '''
-    if not os.path.exists("./Tables"):
-        os.mkdir("./Tables")
+    if not os.path.exists("./Train_data/DQN/tables/"):
+        os.mkdir("./Train_data/DQN/tables/")
 
     for i in range(args.train_times):
         print(f"#{i + 1} training progress")
         train(env)
     print("best score in training progress: ", best_score)
-    test(env)
 
-    if not os.path.exists("./Rewards"):
-        os.mkdir("./Rewards")
+    if not os.path.exists("./Train_data/DQN/rewards/"):
+        os.mkdir("./Train_data/DQN/rewards/")
 
-    np.save("./Rewards/DQN_rewards.npy", np.array(total_rewards))
+    np.save("./Train_data/DQN/rewards/" +
+            args.file + "npy", np.array(total_rewards))
 
     env.close()

@@ -3,6 +3,20 @@ import numpy as np
 import os
 import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--DQN", action="store_true")
+parser.add_argument("--multi", action="store_true")
+parser.add_argument("--file1", type=str,
+                    default="DQN_traintimesXepisode_3x100")
+parser.add_argument("--file2", type=str,
+                    default="DQN_traintimesXepisode_2x150")
+parser.add_argument("--file3", type=str,
+                    default="DQN_traintimesXepisode_1x300")
+parser.add_argument("--compare", type=str, default="traintimesXepisode")
+parser.add_argument("--algorithm", type=str, default="DQN")
+parser.add_argument("--episode", type=int, default=200)
+args = parser.parse_args()
+
 
 def initialize_plot():
     plt.figure(figsize=(10, 5))
@@ -13,7 +27,10 @@ def initialize_plot():
 
 def DQN():
 
-    DQN_Rewards = np.load(args.path + args.file).transpose()
+    read_path = "./Train_data/" + args.algorithm + "/rewards/" + args.file1 + ".npy"
+    output_path = "./Graphs/" + args.algorithm + "/" + args.file1 + ".png"
+
+    DQN_Rewards = np.load(read_path).transpose()
     DQN_avg = np.mean(DQN_Rewards, axis=1)
     DQN_std = np.std(DQN_Rewards, axis=1)
 
@@ -24,45 +41,47 @@ def DQN():
     plt.fill_between([i for i in range(args.episode)], DQN_avg +
                      DQN_std, DQN_avg-DQN_std, facecolor='lightblue')
     plt.legend(loc="best")
-    plt.savefig(args.path + args.img_file)
+    plt.savefig(output_path)
     plt.show()
     plt.close()
 
 
-def compare():
-    DQN_Rewards = np.load("./Test_modals/DQN_rewards.npy").transpose()
-    DQN_avg = np.mean(DQN_Rewards, axis=1)
-    Q_learning_Rewards = np.load("./Rewards/cartpole_rewards.npy").transpose()
-    Q_learning_avg = np.mean(Q_learning_Rewards, axis=1)
+def multi():
+
+    output_path = "./Graphs/" + args.algorithm + "/" + args.compare + ".png"
+
+    rewards = []
+    rewards.append(np.load("./Train_data/" + args.algorithm +
+                   "/rewards/" + args.file1 + ".npy").transpose())
+    rewards.append(np.load("./Train_data/" + args.algorithm +
+                   "/rewards/" + args.file2 + ".npy").transpose())
+    rewards.append(np.load("./Train_data/" + args.algorithm +
+                   "/rewards/" + args.file3 + ".npy").transpose())
+
+    avgs = []
+    for reward in rewards:
+        avgs.append(np.mean(reward, axis=1))
+
     initialize_plot()
-    plt.plot([i for i in range(1000)], DQN_avg, label='DQN', color='blue')
-    plt.plot([i for i in range(1000)],
-             Q_learning_avg[:1000], label='Q_learning', color='orange')
+    colors = ['green', 'red', 'blue']
+    labels = [args.file1, args.file2, args.file3]
+
+    for i in range(len(avgs)):
+        plt.plot([j for j in range(len(avgs[i]))],
+                 avgs[i], label=labels[i], color=colors[i])
+
     plt.legend(loc="best")
-    plt.savefig("./Graphs/compare.png")
+    plt.savefig(output_path)
     plt.show()
     plt.close()
 
 
 if __name__ == "__main__":
-    '''
-    Plot the trend of Rewards
-    '''
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--DQN", action="store_true")
-    parser.add_argument("--compare", action="store_true")
-    parser.add_argument("--file", type=str,
-                        default="DQN_rewardsratio_1.npy")
-    parser.add_argument("--img_file", type=str,
-                        default="DQN_rewardsratio_1.png")
-    parser.add_argument("--path", type=str, default="./Test_modals/DQN/")
-    parser.add_argument("--episode", type=int, default=250)
-    args = parser.parse_args()
 
-    if not os.path.exists(args.path):
-        os.mkdir(args.path)
+    if not os.path.exists("./Graphs/"):
+        os.mkdir("./Graphs/")
 
     if args.DQN:
         DQN()
-    elif args.compare:
-        compare()
+    elif args.multi:
+        multi()
