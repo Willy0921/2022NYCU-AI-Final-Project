@@ -63,6 +63,7 @@ def multi():
         avgs.append(np.mean(reward, axis=1))
 
     initialize_plot()
+
     colors = ['green', 'red', 'blue']
     labels = [args.file1, args.file2, args.file3]
 

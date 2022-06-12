@@ -8,10 +8,10 @@ from ale_py import ALEInterface
 from ale_py.roms import Freeway
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--test_times", type=int, default=3)
+parser.add_argument("--test_times", type=int, default=10)
 parser.add_argument("--algorithm", type=str, default="DQN")
-parser.add_argument("--compare", type=str, default="rewards_ratio")
-parser.add_argument("--file", type=str, default="DQN_rewards_ratio_1000")
+parser.add_argument("--compare", type=str, default="traintimesXepisode")
+parser.add_argument("--file", type=str, default="DQN_traintimesXepisode_3x100")
 args = parser.parse_args()
 
 
@@ -23,6 +23,12 @@ def test(env):
     output_path = "./Test_results/" + args.algorithm + \
         "/" + args.compare + "/" + output_file
 
+    if not os.path.exists("./Test_results/" + args.algorithm +
+                          "/" + args.compare):
+
+        os.mkdir("./Test_results/" + args.algorithm +
+                 "/" + args.compare)
+
     f = open(output_path, 'w')
     f.write(args.file + '\n')
     env.reset()
@@ -32,7 +38,6 @@ def test(env):
         torch.load(read_path))
 
     for i in range(args.test_times):
-        print(f"#{i + 1} testing progress")
         state = env.reset()
         score = 0
         while True:
@@ -44,14 +49,13 @@ def test(env):
             if done:
                 rewards.append(score)
                 f.write(str(score) + ' ')
-                print("score: ", score)
+                print(f"#{i + 1} testing progress   score: {score}")
                 break
             state = next_state
     avg_reward = np.mean(rewards)
     f.write('\n')
     f.write(str(avg_reward))
     print("average reward: ", avg_reward)
-    #print(f"max :{testing_agent.check_max_Q()}")
     f.close()
 
 
