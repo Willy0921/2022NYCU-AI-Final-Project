@@ -1,250 +1,27 @@
 import argparse
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 import os
 import gym
-import random
-from tqdm import tqdm
+from DQN_train import Agent
 from ale_py import ALEInterface
 from ale_py.roms import Freeway
-from collections import deque
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--train_times", type=int, default=2)
-
-parser.add_argument("--epsilon", type=float, default=0.8)
-parser.add_argument("--learning_rate", type=float, default=0.0002)
-parser.add_argument("--GAMMA", type=float, default=0.97)
-parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--capacity", type=int, default=10000)
-
-parser.add_argument("--inner_layer_size", type=int, default=256)
-parser.add_argument("--hidden_layer_size", type=int, default=512)
-
-parser.add_argument("--episode", type=int, default=150)
-# total 2049 steps in Freeway
-parser.add_argument("--learn_threshold", type=int, default=10245)
-
-parser.add_argument("--test_times", type=int, default=1)
-parser.add_argument("--reward_ratio", type=int, default=1000)
-
+parser.add_argument("--test_times", type=int, default=100)
+parser.add_argument("--path", type=str, default="./Test_modals/")
+parser.add_argument("--algorithm", type=str, default="DQN/")
+parser.add_argument("--file", type=str,
+                    default="DQN_traintimesXepisode_1x300.pt")
 args = parser.parse_args()
-
-total_rewards = []
-best_score = float('-inf')
-
-
-class replay_buffer():
-    '''
-    A deque storing trajectories
-    '''
-
-    def __init__(self, capacity):
-        self.capacity = capacity  # the size of the replay buffer
-        self.memory = deque(maxlen=capacity)  # replay buffer itself
-
-    def insert(self, state, action, reward, next_state, done):
-        '''
-        Insert a sequence of data gotten by the agent into the replay buffer.
-
-        Parameter:
-            state: the current state
-            action: the action done by the agent
-            reward: the reward agent got
-            next_state: the next state
-            done: the status showing whether the episode finish
-
-        Return:
-            None
-        '''
-        self.memory.append([state, action, reward, next_state, done])
-
-    def sample(self, batch_size):
-        '''
-        Sample a batch size of data from the replay buffer.
-
-        Parameter:
-            batch_size: the number of samples which will be propagated through the neural network
-
-        Returns:
-            observations: a batch size of states stored in the replay buffer
-            actions: a batch size of actions stored in the replay buffer
-            rewards: a batch size of rewards stored in the replay buffer
-            next_observations: a batch size of "next_state"s stored in the replay buffer
-            done: a batch size of done stored in the replay buffer
-        '''
-        batch = random.sample(self.memory, batch_size)
-        observations, actions, rewards, next_observations, done = zip(*batch)
-        return observations, actions, rewards, next_observations, done
-
-
-class Net(nn.Module):
-    '''
-    The structure of the Neural Network calculating Q values of each state.
-    '''
-
-    def __init__(self, num_actions, hidden_layer_size=args.hidden_layer_size):
-        super(Net, self).__init__()
-        self.input_state = 128  # the dimension of state space
-        self.num_actions = num_actions  # the dimension of action space
-        self.fc1 = nn.Linear(
-            self.input_state, args.inner_layer_size)  # input layer
-        self.fc2 = nn.Linear(args.inner_layer_size,
-                             hidden_layer_size)  # hidden layer
-        self.fc3 = nn.Linear(hidden_layer_size, num_actions)  # output layer
-
-    def forward(self, states):
-        '''
-        Forward the state to the neural network.
-
-        Parameter:
-            states: a batch size of states
-
-        Return:
-            q_values: a batch size of q_values
-        '''
-
-        # print(states.shape)
-        x = F.relu(self.fc1(states))
-        x = F.relu(self.fc2(x))
-        q_values = self.fc3(x)
-        return q_values
-
-
-class Agent():
-    def __init__(self, env, epsilon=args.epsilon, learning_rate=args.learning_rate, GAMMA=args.GAMMA, batch_size=args.batch_size, capacity=args.capacity):
-        """
-        The agent learning how to control the action of the cart pole.
-
-        Hyperparameters:
-            epsilon: Determines the explore/expliot rate of the agent
-            learning_rate: Determines the step size while moving toward a minimum of a loss function
-            GAMMA: the discount factor (tradeoff between immediate rewards and future rewards)
-            batch_size: the number of samples which will be propagated through the neural network
-            capacity: the size of the replay buffer/memory
-        """
-        self.env = env
-        self.n_actions = 3  # the number of actions
-        self.count = 0  # recording the number of iterations
-
-        self.epsilon = epsilon
-        self.learning_rate = learning_rate
-        self.gamma = GAMMA
-        self.batch_size = batch_size
-        self.capacity = capacity
-
-        self.buffer = replay_buffer(self.capacity)
-        self.evaluate_net = Net(self.n_actions)  # the evaluate network
-        self.target_net = Net(self.n_actions)  # the target network
-
-        self.optimizer = torch.optim.Adam(
-            self.evaluate_net.parameters(), lr=self.learning_rate)  # Adam is a method using to optimize the neural network
-
-    def learn(self):
-        '''
-        - Implement the learning function.
-        - Here are the hints to implement.
-
-        Steps:
-        -----
-        1. Update target net by current net every 100 times. (we have done for you)
-        2. Sample trajectories of batch size from the replay buffer.
-        3. Forward the data to the evaluate net and the target net.
-        4. Compute the loss with MSE.
-        5. Zero-out the gradients.
-        6. Backpropagation.
-        7. Optimize the loss function.
-        -----
-
-        Parameters:
-            self: the agent itself.
-            (Don't pass additional parameters to the function.)
-            (All you need have been initialized in the constructor.)
-
-        Returns:
-            None (Don't need to return anything)
-        '''
-        if self.count % 100 == 0:
-            self.target_net.load_state_dict(self.evaluate_net.state_dict())
-
-        b_memory = self.buffer.sample(self.batch_size)
-        b_state = torch.FloatTensor(np.asarray(b_memory[0]))
-        b_action = torch.LongTensor(np.asarray(
-            b_memory[1])).view(self.batch_size, 1)
-        b_reward = torch.IntTensor(np.asarray(
-            b_memory[2])).view(self.batch_size, 1)
-        b_next_state = torch.FloatTensor(np.asarray(b_memory[3]))
-        b_done = torch.IntTensor(np.asarray(
-            b_memory[4])).view(self.batch_size, 1)
-
-        q_eval = self.evaluate_net(b_state).gather(1, b_action)
-        q_next = self.target_net(b_next_state).detach()
-        q_target = b_reward + self.gamma * \
-            q_next.max(1)[0].view(self.batch_size, 1)
-        q_target = torch.mul(q_target, torch.logical_not(b_done))
-
-        loss = nn.MSELoss()(q_eval, q_target)
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-
-    def choose_action(self, state):
-        """
-        - Implement the action-choosing function.
-        - Choose the best action with given state and epsilon
-
-        Parameters:
-            self: the agent itself.
-            state: the current state of the enviornment.
-            (Don't pass additional parameters to the function.)
-            (All you need have been initialized in the constructor.)
-
-        Returns:
-            action: the chosen action.
-        """
-        with torch.no_grad():
-            # print(torch.FloatTensor(state).shape)
-            x = torch.unsqueeze(torch.FloatTensor(state), 0)
-            r = np.random.rand()
-            if r < self.epsilon:
-                p = random.uniform(0, 1)
-                if (p < 0.3):
-                    action = np.random.randint(0, self.n_actions)
-                else:
-                    action = 1
-            else:
-                actions_value = self.evaluate_net(x)
-                # print(actions_value)
-                action = torch.max(actions_value, 1)[1].data.numpy()[0]
-            return action
-
-    def check_max_Q(self):
-        """
-        - Implement the function calculating the max Q value of initial state(self.env.reset()).
-        - Check the max Q value of initial state
-
-        Parameter:
-            self: the agent itself.
-            (Don't pass additional parameters to the function.)
-            (All you need have been initialized in the constructor.)
-
-        Return:
-            max_q: the max Q value of initial state(self.env.reset())
-        """
-        state = self.env.reset()
-        x = torch.unsqueeze(torch.FloatTensor(state), 0)
-        q_values = self.target_net(x)
-        max_q = torch.max(q_values, 1)[0].data.numpy()[0]
-        return max_q
 
 
 def test(env):
+    env.reset()
     rewards = []
     testing_agent = Agent(env)
-    testing_agent.target_net.load_state_dict(torch.load("./Tables/DQN.pt"))
+    testing_agent.target_net.load_state_dict(
+        torch.load(args.path + args.algorithm + args.file))
     for i in range(args.test_times):
         print(f"#{i + 1} testing progress")
         state = env.reset()
@@ -264,59 +41,9 @@ def test(env):
     print(f"max :{testing_agent.check_max_Q()}")
 
 
-def train(env):
-    agent = Agent(env)
-    rewards = []
-    for _ in tqdm(range(args.episode)):
-        state = env.reset()
-        score = 0
-        if agent.count >= args.learn_threshold:
-            agent.epsilon = 0.05
-        while True:
-            agent.count += 1
-            action = agent.choose_action(state)
-            next_state, reward, done, _ = env.step(action)
-            score += reward
-            agent.buffer.insert(state, int(action), reward *
-                                args.reward_ratio, next_state, int(done))
-            if agent.count >= args.learn_threshold:
-                agent.learn()
-            if done:
-                rewards.append(score)
-                break
-            state = next_state
-
-        global best_score
-        if best_score <= score:
-            best_score = score
-            # print(score)
-            torch.save(agent.target_net.state_dict(), "./Tables/DQN.pt")
-
-    total_rewards.append(rewards)
-
-
 if __name__ == "__main__":
 
     env = gym.make('Freeway-v4',  obs_type='ram')
-
-    env.reset()
-    '''
-        action  '0': stay in place
-                '1': go forward
-                '2': go backward
-    '''
-    if not os.path.exists("./Tables"):
-        os.mkdir("./Tables")
-
-    for i in range(args.train_times):
-        print(f"#{i + 1} training progress")
-        train(env)
-    print("best score in training progress: ", best_score)
     test(env)
 
-    if not os.path.exists("./Rewards"):
-        os.mkdir("./Rewards")
-
-    np.save("./Rewards/DQN_rewards.npy", np.array(total_rewards))
-
-    env.close()
+env.close()
