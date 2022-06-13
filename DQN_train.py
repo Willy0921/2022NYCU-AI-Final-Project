@@ -19,7 +19,8 @@ parser.add_argument("--train_times", type=int, default=1,
 parser.add_argument("--episode", type=int, default=250,
                     help="Determines the episode we want to train per time")
 
-parser.add_argument("--epsilon", type=float, default=0.8,
+parser.add_argument("--init_epsilon", type=float, default=0.8)
+parser.add_argument("--epsilon", type=float, default=0.05,
                     help="Determines the explore/expliot rate of the agent")
 parser.add_argument("--learning_rate", type=float, default=0.0002,
                     help="Determines the step size while moving toward a minimum of a loss function")
@@ -93,7 +94,7 @@ class Net(nn.Module):
 
 
 class Agent():
-    def __init__(self, env, epsilon=args.epsilon, learning_rate=args.learning_rate, GAMMA=args.GAMMA, batch_size=args.batch_size, capacity=args.capacity):
+    def __init__(self, env, epsilon=args.init_epsilon, learning_rate=args.learning_rate, GAMMA=args.GAMMA, batch_size=args.batch_size, capacity=args.capacity):
         '''
             - The agent learning how to control the action of the agent.
         '''
@@ -183,7 +184,7 @@ def train(env):
         state = env.reset()
         score = 0
         if agent.count >= args.learn_threshold:
-            agent.epsilon = 0.05
+            agent.epsilon = args.epsilon
         while True:
             agent.count += 1
             action = agent.choose_action(state)
@@ -202,7 +203,7 @@ def train(env):
         if best_score <= score:
             best_score = score
             torch.save(agent.target_net.state_dict(), "./Train_data/DQN/tables/" +
-                       args.file + "pt")
+                       args.file + ".pt")
 
     total_rewards.append(rewards)
 
