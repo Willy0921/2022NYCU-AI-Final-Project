@@ -18,12 +18,12 @@ Run the following command to modify and check the imformation of parameters
 
 ## Contributions
 
-|         | Are           | Cool  |Cool  |
+|         |陳尚奇109550110          | 曾偉杰109550156  |李驊恩109550159  |
 | ------------- |:-------------:| -----:|-----:|
-| Brainstorming        | 靠右對齊      | $1600 | $1600 |
-| Latex Report        | 置中對齊      |   $12 |$12 |
-| DQN Training Code      | 是整齊的      |    $1 |$1 |
-| Q-learning Training Code  | 靠右對齊      | $1600 | $1600 |
-| Model Training and Data Collection   | 靠右對齊      | $1600 | $1600 |
-| Video Recording        | 靠右對齊      | $1600 | $1600 |
-| Data and Result Analysis        | 靠右對齊      | $1600 | $1600 |
+| Brainstorming        |  33.3%     | 33.3% | 33.3% |
+| Latex Report        | 10%      |   10% |10% |
+| DQN Training Code      | 20%      |    80% |0% |
+| Q-learning Training Code  | 70%     | 30% | 0% |
+| Model Training and Data Collection   | 40%      | 30% | 30% |
+| Video Recording        | 100%    | 0% | 0% |
+| Data and Result Analysis        | 10%      | 80% | 10% |
