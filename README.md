@@ -17,3 +17,8 @@ Run the following command to modify and check the imformation of parameters
 
 
 ## Contributions
+
+000000|陳尚奇109550110|曾偉杰109550156|李驊恩109550159
+-----------------------------------------------
+000000||
+000000|
