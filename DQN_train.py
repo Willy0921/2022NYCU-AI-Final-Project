@@ -13,7 +13,7 @@ from collections import deque
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file", type=str, default="DQN_rewardsratio_1",
-                    help="Determines the name of this modal")
+                    help="Determines the name of this model")
 parser.add_argument("--train_times", type=int, default=1,
                     help="Determines the times of training process")
 parser.add_argument("--episode", type=int, default=250,
