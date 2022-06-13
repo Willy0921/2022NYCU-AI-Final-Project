@@ -9,9 +9,11 @@ from ale_py.roms import Freeway
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--test_times", type=int, default=10)
-parser.add_argument("--algorithm", type=str, default="Qlearning")
+parser.add_argument("--algorithm", type=str,
+                    default="Qlearning", help="Determines test algorithm")
 parser.add_argument("--compare", type=str, default="episode")
-parser.add_argument("--file", type=str, default="Qlearning_episode_600(200)")
+parser.add_argument("--file", type=str, default="Qlearning_episode_600(200)",
+                    help="Name of table that will be test")
 parser.add_argument("--num_bins", type=int, default=2)
 args = parser.parse_args()
 
