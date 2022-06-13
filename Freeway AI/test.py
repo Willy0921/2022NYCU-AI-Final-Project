@@ -12,7 +12,7 @@ parser.add_argument("--test_times", type=int, default=10)
 parser.add_argument("--algorithm", type=str,
                     default="Qlearning", help="Determines test algorithm")
 parser.add_argument("--compare", type=str, default="num_bins")
-parser.add_argument("--file", type=str, default="Qlearning_num_bins_4",
+parser.add_argument("--file", type=str, default="Qlearning_num_bins_8",
                     help="Name of table that will be test")
 parser.add_argument("--num_bins", type=int, default=2)
 args = parser.parse_args()
@@ -127,8 +127,8 @@ def Q_learning_test(env):
 
 if __name__ == "__main__":
 
-    env = gym.make('Freeway-v4',  obs_type='ram', render_mode='human')
-    # env = gym.make('Freeway-v4',  obs_type='ram')
+    # env = gym.make('Freeway-v4',  obs_type='ram', render_mode='human')
+    env = gym.make('Freeway-v4',  obs_type='ram')
 
     if args.algorithm == "DQN":
         DQN_test(env)

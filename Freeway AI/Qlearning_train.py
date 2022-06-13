@@ -140,7 +140,7 @@ class Agent():
         # Conditions to decide when to save your table
         global max_count
         if done and ep >= args.learn_threshold:
-            if np.mean(max_count) <= count :
+            if np.mean(max_count) <= count:
                 np.save("./Train_data/Qlearning/tables/" +
                         args.file + ".npy", self.qtable)
                 print(f"save table whose score is {count}")

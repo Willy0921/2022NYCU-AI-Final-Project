@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--DQN", action="store_true")
 parser.add_argument("--multi", action="store_true")
 parser.add_argument("--file", type=str,
-                    default="Qlearning_num_bins_2")
+                    default="Qlearning_num_bins_8")
 parser.add_argument("--algorithm", type=str, default="Qlearning")
 parser.add_argument("--compare", type=str, default="num_bins")
 args = parser.parse_args()
