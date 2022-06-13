@@ -8,4 +8,4 @@ Run the following command to set the environment of Atari Freeway
 
 ## Parameters
 Run the following command to modify and check the imformation of parameters  
-`python main.py-h`
+`python main.py -h`
