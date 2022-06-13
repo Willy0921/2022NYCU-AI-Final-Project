@@ -13,7 +13,7 @@ Run the following command to set the environment of Atari Freeway
 Run the following command to modify and check the imformation of parameters  
 `python main.py -h`
 
-## Agent's performence under different parameters
+### Agent's performence under different parameters
 
 
 ## Contributions
