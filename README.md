@@ -4,7 +4,7 @@ Atari-freeway is a game that a player can control a chicken to get to the other 
   
 ## Environment
 Run the following command to set the environment of Atari Freeway  
-`pip install`  
+`pip install gym[atari]`  
 
 
 ## Parameters
