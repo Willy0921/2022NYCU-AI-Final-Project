@@ -1,7 +1,6 @@
 import numpy as np
 import gym
 import os
-from sklearn.metrics import SCORERS
 from tqdm import tqdm
 import argparse
 
