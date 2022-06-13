@@ -7,14 +7,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--DQN", action="store_true")
 parser.add_argument("--multi", action="store_true")
 parser.add_argument("--file1", type=str,
-                    default="DQN_traintimesXepisode_3x100")
-parser.add_argument("--file2", type=str,
-                    default="DQN_traintimesXepisode_2x150")
-parser.add_argument("--file3", type=str,
-                    default="DQN_traintimesXepisode_1x300")
-parser.add_argument("--compare", type=str, default="traintimesXepisode")
+                    default="DQN_episode_1000")
+parser.add_argument("--compare", type=str, default="episode")
 parser.add_argument("--algorithm", type=str, default="DQN")
-parser.add_argument("--episode", type=int, default=200)
 args = parser.parse_args()
 
 
@@ -51,12 +46,12 @@ def multi():
     output_path = "./Graphs/" + args.algorithm + "/" + args.compare + ".png"
 
     rewards = []
-    rewards.append(np.load("./Train_data/" + args.algorithm +
-                   "/rewards/" + args.file1 + ".npy").transpose())
-    rewards.append(np.load("./Train_data/" + args.algorithm +
-                   "/rewards/" + args.file2 + ".npy").transpose())
-    rewards.append(np.load("./Train_data/" + args.algorithm +
-                   "/rewards/" + args.file3 + ".npy").transpose())
+    labels = []
+    path = "./Train_data/" + args.algorithm + "/rewards/"
+    for filename in os.listdir(path):
+        if args.algorithm + "_" + args.compare in filename:
+            rewards.append(np.load(path + filename).transpose())
+            labels.append(filename[0:-4])
 
     avgs = []
     for reward in rewards:
@@ -64,8 +59,7 @@ def multi():
 
     initialize_plot()
 
-    colors = ['green', 'red', 'blue']
-    labels = [args.file1, args.file2, args.file3]
+    colors = ['green', 'red', 'blue', 'orange']
 
     for i in range(len(avgs)):
         plt.plot([j for j in range(len(avgs[i]))],

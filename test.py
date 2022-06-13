@@ -10,8 +10,8 @@ from ale_py.roms import Freeway
 parser = argparse.ArgumentParser()
 parser.add_argument("--test_times", type=int, default=10)
 parser.add_argument("--algorithm", type=str, default="DQN")
-parser.add_argument("--compare", type=str, default="traintimesXepisode")
-parser.add_argument("--file", type=str, default="DQN_traintimesXepisode_1x300")
+parser.add_argument("--compare", type=str, default="episode")
+parser.add_argument("--file", type=str, default="DQN_episode_1000")
 args = parser.parse_args()
 
 
@@ -61,6 +61,7 @@ def test(env):
 
 if __name__ == "__main__":
 
+    #env = gym.make('Freeway-v4',  obs_type='ram', render_mode='human')
     env = gym.make('Freeway-v4',  obs_type='ram')
     test(env)
 

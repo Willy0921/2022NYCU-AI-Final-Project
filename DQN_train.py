@@ -11,6 +11,15 @@ from ale_py import ALEInterface
 from ale_py.roms import Freeway
 from collections import deque
 
+"""
+    Hyperparameters:
+    - epsilon: Determines the explore/expliot rate of the agent
+    - learning_rate: Determines the step size while moving toward a minimum of a loss function
+    - GAMMA: the discount factor (tradeoff between immediate rewards and future rewards)
+    - batch_size: the number of samples which will be propagated through the neural network
+    - capacity: the size of the replay buffer/memory
+"""
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--file", type=str, default="DQN_rewardsratio_1")
 parser.add_argument("--train_times", type=int, default=1)
@@ -25,7 +34,7 @@ parser.add_argument("--inner_layer_size", type=int, default=256)
 parser.add_argument("--hidden_layer_size", type=int, default=512)
 
 parser.add_argument("--episode", type=int, default=250)
-# total 2049 steps in Freeway
+
 parser.add_argument("--learn_threshold", type=int, default=10245)
 parser.add_argument("--reward_ratio", type=int, default=1000)
 
@@ -37,7 +46,7 @@ best_score = float('-inf')
 
 class replay_buffer():
     '''
-    A deque storing trajectories
+        - A deque storing trajectories
     '''
 
     def __init__(self, capacity):
@@ -46,33 +55,13 @@ class replay_buffer():
 
     def insert(self, state, action, reward, next_state, done):
         '''
-        Insert a sequence of data gotten by the agent into the replay buffer.
-
-        Parameter:
-            state: the current state
-            action: the action done by the agent
-            reward: the reward agent got
-            next_state: the next state
-            done: the status showing whether the episode finish
-
-        Return:
-            None
+            - Insert a sequence of data gotten by the agent into the replay buffer.
         '''
         self.memory.append([state, action, reward, next_state, done])
 
     def sample(self, batch_size):
         '''
-        Sample a batch size of data from the replay buffer.
-
-        Parameter:
-            batch_size: the number of samples which will be propagated through the neural network
-
-        Returns:
-            observations: a batch size of states stored in the replay buffer
-            actions: a batch size of actions stored in the replay buffer
-            rewards: a batch size of rewards stored in the replay buffer
-            next_observations: a batch size of "next_state"s stored in the replay buffer
-            done: a batch size of done stored in the replay buffer
+            - Sample a batch size of data from the replay buffer.
         '''
         batch = random.sample(self.memory, batch_size)
         observations, actions, rewards, next_observations, done = zip(*batch)
@@ -96,15 +85,9 @@ class Net(nn.Module):
 
     def forward(self, states):
         '''
-        Forward the state to the neural network.
-
-        Parameter:
-            states: a batch size of states
-
-        Return:
-            q_values: a batch size of q_values
+           - Forward the state to the neural network.
+           - Return a batch size of q_values
         '''
-
         x = F.relu(self.fc1(states))
         x = F.relu(self.fc2(x))
         q_values = self.fc3(x)
@@ -113,16 +96,9 @@ class Net(nn.Module):
 
 class Agent():
     def __init__(self, env, epsilon=args.epsilon, learning_rate=args.learning_rate, GAMMA=args.GAMMA, batch_size=args.batch_size, capacity=args.capacity):
-        """
-        The agent learning how to control the action of the cart pole.
-
-        Hyperparameters:
-            epsilon: Determines the explore/expliot rate of the agent
-            learning_rate: Determines the step size while moving toward a minimum of a loss function
-            GAMMA: the discount factor (tradeoff between immediate rewards and future rewards)
-            batch_size: the number of samples which will be propagated through the neural network
-            capacity: the size of the replay buffer/memory
-        """
+        '''
+            - The agent learning how to control the action of the agent.
+        '''
         self.env = env
         self.n_actions = 3  # the number of actions
         self.count = 0  # recording the number of iterations
@@ -142,27 +118,17 @@ class Agent():
 
     def learn(self):
         '''
-        - Implement the learning function.
-        - Here are the hints to implement.
+            - Implement the learning function.
 
-        Steps:
-        -----
-        1. Update target net by current net every 100 times. (we have done for you)
-        2. Sample trajectories of batch size from the replay buffer.
-        3. Forward the data to the evaluate net and the target net.
-        4. Compute the loss with MSE.
-        5. Zero-out the gradients.
-        6. Backpropagation.
-        7. Optimize the loss function.
-        -----
-
-        Parameters:
-            self: the agent itself.
-            (Don't pass additional parameters to the function.)
-            (All you need have been initialized in the constructor.)
-
-        Returns:
-            None (Don't need to return anything)
+            Steps:
+            -----
+            1. Update target net by current net every 100 times.
+            2. Sample trajectories of batch size from the replay buffer.
+            3. Forward the data to the evaluate net and the target net.
+            4. Compute the loss with MSE.
+            5. Zero-out the gradients.
+            6. Backpropagation.
+            7. Optimize the loss function.
         '''
         if self.count % 100 == 0:
             self.target_net.load_state_dict(self.evaluate_net.state_dict())
@@ -190,19 +156,10 @@ class Agent():
         self.optimizer.step()
 
     def choose_action(self, state):
-        """
-        - Implement the action-choosing function.
-        - Choose the best action with given state and epsilon
-
-        Parameters:
-            self: the agent itself.
-            state: the current state of the enviornment.
-            (Don't pass additional parameters to the function.)
-            (All you need have been initialized in the constructor.)
-
-        Returns:
-            action: the chosen action.
-        """
+        '''
+            - Implement the action-choosing function.
+            - Choose the best action with given state and epsilon
+        '''
         with torch.no_grad():
             x = torch.unsqueeze(torch.FloatTensor(state), 0)
             r = np.random.rand()
@@ -219,6 +176,9 @@ class Agent():
 
 
 def train(env):
+    '''
+        - Trainning process: total 2049 steps in Freeway
+    '''
     agent = Agent(env)
     rewards = []
     for _ in tqdm(range(args.episode)):
