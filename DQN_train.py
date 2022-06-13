@@ -11,29 +11,27 @@ from ale_py import ALEInterface
 from ale_py.roms import Freeway
 from collections import deque
 
-"""
-    Hyperparameters:
-    - epsilon: Determines the explore/expliot rate of the agent
-    - learning_rate: Determines the step size while moving toward a minimum of a loss function
-    - GAMMA: the discount factor (tradeoff between immediate rewards and future rewards)
-    - batch_size: the number of samples which will be propagated through the neural network
-    - capacity: the size of the replay buffer/memory
-"""
-
 parser = argparse.ArgumentParser()
-parser.add_argument("--file", type=str, default="DQN_rewardsratio_1")
-parser.add_argument("--train_times", type=int, default=1)
+parser.add_argument("--file", type=str, default="DQN_rewardsratio_1",
+                    help="Determines the name of this modal")
+parser.add_argument("--train_times", type=int, default=1,
+                    help="Determines the times of training process")
+parser.add_argument("--episode", type=int, default=250,
+                    help="Determines the episode we want to train per time")
 
-parser.add_argument("--epsilon", type=float, default=0.8)
-parser.add_argument("--learning_rate", type=float, default=0.0002)
-parser.add_argument("--GAMMA", type=float, default=0.97)
-parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--capacity", type=int, default=10000)
+parser.add_argument("--epsilon", type=float, default=0.8,
+                    help="Determines the explore/expliot rate of the agent")
+parser.add_argument("--learning_rate", type=float, default=0.0002,
+                    help="Determines the step size while moving toward a minimum of a loss function")
+parser.add_argument("--GAMMA", type=float, default=0.97,
+                    help="The discount factor (tradeoff between immediate rewards and future rewards")
+parser.add_argument("--batch_size", type=int, default=32,
+                    help="The number of samples which will be propagated through the neural network")
+parser.add_argument("--capacity", type=int, default=10000,
+                    help="The size of the replay buffer")
 
 parser.add_argument("--inner_layer_size", type=int, default=256)
 parser.add_argument("--hidden_layer_size", type=int, default=512)
-
-parser.add_argument("--episode", type=int, default=250)
 
 parser.add_argument("--learn_threshold", type=int, default=10245)
 parser.add_argument("--reward_ratio", type=int, default=1000)
@@ -224,9 +222,9 @@ if __name__ == "__main__":
         os.mkdir("./Train_data/DQN/tables/")
 
     for i in range(args.train_times):
-        print(f"#{i + 1} training progress")
+        print(f"#{i + 1} training process")
         train(env)
-    print("best score in training progress: ", best_score)
+    print("best score in training process: ", best_score)
 
     if not os.path.exists("./Train_data/DQN/rewards/"):
         os.mkdir("./Train_data/DQN/rewards/")

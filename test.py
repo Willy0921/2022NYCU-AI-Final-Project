@@ -25,7 +25,6 @@ def test(env):
 
     if not os.path.exists("./Test_results/" + args.algorithm +
                           "/" + args.compare):
-
         os.mkdir("./Test_results/" + args.algorithm +
                  "/" + args.compare)
 

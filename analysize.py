@@ -1,10 +1,4 @@
-import argparse
 import os
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--algorithm", type=str, default="DQN")
-args = parser.parse_args()
-
 
 if __name__ == "__main__":
     compares = ["episode", "rewards_ratio", "traintimesXepisode"]
@@ -14,7 +8,7 @@ if __name__ == "__main__":
     for compare in compares:
         files = []
         avgs = []
-        path = "./Test_results/" + args.algorithm + "/" + compare + "/"
+        path = "./Test_results/DQN/" + compare + "/"
         for filename in os.listdir(path):
             f = open(path + filename, 'r')
             lines = f.readlines()
