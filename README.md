@@ -19,7 +19,7 @@ Run the following command to modify and check the imformation of parameters
 ## Contributions
 
 |         |陳尚奇109550110          | 曾偉杰109550156  |李驊恩109550159  |
-| ------------- |:-------------:| -----:|-----:|
+| ------------- |:-------------:| :-----:|:-----:|
 | Brainstorming        |  33.3%     | 33.3% | 33.3% |
 | Latex Report        | 0%      |    0% |100% |
 | DQN Training Code      | 20%      |    80% |0% |
