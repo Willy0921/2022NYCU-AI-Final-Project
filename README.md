@@ -18,8 +18,12 @@ Run the following command to modify and check the imformation of parameters
 
 ## Contributions
 
-| Tables        | Are           | Cool  |Cool  |
+|         | Are           | Cool  |Cool  |
 | ------------- |:-------------:| -----:|-----:|
-| 第三欄        | 靠右對齊      | $1600 | $1600 |
-| 第二欄        | 置中對齊      |   $12 |$12 |
-| 斑馬條紋      | 是整齊的      |    $1 |$1 |
+| Brainstorming        | 靠右對齊      | $1600 | $1600 |
+| Latex Report        | 置中對齊      |   $12 |$12 |
+| DQN Training Code      | 是整齊的      |    $1 |$1 |
+| Q-learning Training Code  | 靠右對齊      | $1600 | $1600 |
+| Model Training and Data Collection   | 靠右對齊      | $1600 | $1600 |
+| Video Recording        | 靠右對齊      | $1600 | $1600 |
+| Data and Result Analysis        | 靠右對齊      | $1600 | $1600 |
