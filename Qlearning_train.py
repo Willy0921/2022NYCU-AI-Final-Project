@@ -144,7 +144,7 @@ class Agent():
             if np.mean(max_count) <= count:
                 np.save("./Train_data/Qlearning/tables/" +
                         args.file + ".npy", self.qtable)
-
+                print(f"save table whose score is {count}")
             inx = np.argmin(max_count)
             if max_count[inx] < count:
                 max_count[inx] = count
@@ -205,40 +205,6 @@ def train(env):
             training_agent.learning_rate -= args.decay
 
     total_reward.append(rewards)
-
-
-def test(env):
-    """
-    Test the agent on the given environment.
-    """
-    testing_agent = Agent(env)
-
-    # Change the filename to your student id
-    testing_agent.qtable = np.load(
-        "./Train_data/Qlearning/tables/" + args.file + ".npy", allow_pickle=True).item()
-    rewards = []
-
-    for _ in range(args.num_test):
-        state = testing_agent.discretize_observation(testing_agent.env.reset())
-        count = 0
-        while True:
-            state = np.array2string(
-                state, max_line_width=args.state_len, separator='')[1:-1]
-            action = np.argmax(testing_agent.qtable.setdefault(
-                state, [0.] * testing_agent.env.action_space.n))
-            next_observation, reward, done, _ = testing_agent.env.step(action)
-            if reward:
-                count += 1
-            next_state = testing_agent.discretize_observation(next_observation)
-
-            if done == True:
-                rewards.append(count)
-                break
-
-            state = next_state
-
-    print(f"average reward: {np.mean(rewards)}")
-    print(f"max Q:{testing_agent.check_max_Q()}")
 
 
 if __name__ == "__main__":

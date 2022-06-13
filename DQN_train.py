@@ -211,6 +211,7 @@ def train(env):
 if __name__ == "__main__":
 
     env = gym.make('Freeway-v4',  obs_type='ram')
+    # env = gym.make('Freeway-v4', obs_type = 'ram',  render_mode='human') # with game window
 
     env.reset()
     '''

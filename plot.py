@@ -6,10 +6,10 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--DQN", action="store_true")
 parser.add_argument("--multi", action="store_true")
-parser.add_argument("--file1", type=str,
-                    default="DQN_episode_1000")
+parser.add_argument("--file", type=str,
+                    default="Qlearning_episode_600(200)")
+parser.add_argument("--algorithm", type=str, default="Qlearning")
 parser.add_argument("--compare", type=str, default="episode")
-parser.add_argument("--algorithm", type=str, default="DQN")
 args = parser.parse_args()
 
 
@@ -20,21 +20,24 @@ def initialize_plot():
     plt.ylabel('score')
 
 
-def DQN():
+def single():
 
-    read_path = "./Train_data/" + args.algorithm + "/rewards/" + args.file1 + ".npy"
-    output_path = "./Graphs/" + args.algorithm + "/" + args.file1 + ".png"
+    read_path = "./Train_data/" + args.algorithm + "/rewards/" + args.file + ".npy"
+    output_path = "./Graphs/" + args.algorithm + "/" + args.file + ".png"
 
-    DQN_Rewards = np.load(read_path).transpose()
-    DQN_avg = np.mean(DQN_Rewards, axis=1)
-    DQN_std = np.std(DQN_Rewards, axis=1)
+    rewards = np.load(read_path).transpose()
+    avg = np.mean(rewards, axis=1)
+    std = np.std(rewards, axis=1)
 
     initialize_plot()
-
-    plt.plot([i for i in range(len(DQN_Rewards))],
-             DQN_avg, label='DQN', color='blue')
-    plt.fill_between([i for i in range(len(DQN_Rewards))], DQN_avg +
-                     DQN_std, DQN_avg-DQN_std, facecolor='lightblue')
+    if args.algorithm == "DQN":
+        plt.plot([i for i in range(len(rewards))],
+                 avg, label='DQN', color='blue')
+    else:
+        plt.plot([i for i in range(len(rewards))],
+                 avg, label='Q Learning', color='blue')
+    plt.fill_between([i for i in range(len(rewards))],
+                     avg + std, avg-std, facecolor='lightblue')
     plt.legend(loc="best")
     plt.savefig(output_path)
     plt.show()
@@ -76,7 +79,7 @@ if __name__ == "__main__":
     if not os.path.exists("./Graphs/"):
         os.mkdir("./Graphs/")
 
-    if args.DQN:
-        DQN()
-    elif args.multi:
+    if args.multi:
         multi()
+    else:
+        single()
