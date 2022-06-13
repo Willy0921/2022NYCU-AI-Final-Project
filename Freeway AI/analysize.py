@@ -18,13 +18,13 @@ if __name__ == "__main__":
         if compare == "traintimesXepisode":
             print("")
             print(f"(#train,")
-            print(f"#episode)\tDQN\tQ-learning")
+            print(f"#episode)\tDQN")
         elif compare == "rewards_ratio":
             print("")
             print(f"rewards")
-            print(f"ratio\tDQN\tQ-learning")
+            print(f"ratio\tDQN")
         else:
-            print(f"{compare}\tDQN\tQ-learning")
+            print(f"{compare}\tDQN")
         print("-----------------------------------------")
         for i in range(len(files)):
             if compare == "traintimesXepisode":
