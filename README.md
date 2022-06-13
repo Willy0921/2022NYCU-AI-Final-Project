@@ -3,4 +3,4 @@
   
 ## environment
 Run the following command to set the environment of Atari Freeway
-    pip install  
+`pip install`  
