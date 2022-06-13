@@ -12,7 +12,7 @@ Run the following command to set the environment of Atari Freeway
 
 ## Parameters
 Run the following command to modify and check the imformation of parameters  
-`python main.py -h`
+`python DQN_train.py -h` and `python Qlearning_train.py -h`
 
 ### Agent's performence under different parameters
 
