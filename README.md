@@ -20,10 +20,10 @@ Run the following command to modify and check the imformation of parameters
 
 |         |陳尚奇109550110          | 曾偉杰109550156  |李驊恩109550159  |
 | ------------- |:-------------:| :-----:|:-----:|
-| Brainstorming        |  33.3%     | 33.3% | 33.3% |
-| Latex Report        | 0%      |    0% |100% |
-| DQN Training Code      | 20%      |    80% |0% |
-| Q-learning Training Code  | 70%     | 30% | 0% |
-| Model Training and Data Collection   | 40%      | 30% | 30% |
-| Video Recording        | 100%    | 0% | 0% |
-| Data and Result Analysis        | 10%      | 80% | 10% |
+| Brainstorming (19%)        |  33.3%     | 33.3% | 33.3% |
+| Latex Report (13%)       | 0%      |    0% |100% |
+| DQN Training Code (19%)     | 20%      |    80% |0% |
+| Q-learning Training Code (13%) | 70%     | 30% | 0% |
+| Model Training and Data Collection (13%)  | 40%      | 30% | 30% |
+| Video Recording (8%)       | 100%    | 0% | 0% |
+| Data and Result Analysis (15%)       | 10%      | 80% | 10% |
