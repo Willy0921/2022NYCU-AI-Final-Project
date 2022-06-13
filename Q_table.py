@@ -5,24 +5,24 @@ from sklearn.metrics import SCORERS
 from tqdm import tqdm
 import argparse
 
-# date: 2022/6/12 19:30
+# date: 2022/6/13 02:00
 
 total_reward = []
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed",           type= int,      default= 81)
 
-parser.add_argument("--episode",        type= int,      default= 1000)
-parser.add_argument("--decay_frequency",type= int,      default= 200)
+parser.add_argument("--episode",        type= int,      default= 600)
+parser.add_argument("--decay_frequency",type= int,      default= 100)
 parser.add_argument("--num_test",       type= int,      default= 1)
 parser.add_argument("--num_train",      type= int,      default= 1)
 
-parser.add_argument("--num_bins",       type= int,      default= 8)
+parser.add_argument("--num_bins",       type= int,      default= 2)
 parser.add_argument("--state_len",      type= int,      default= 130)
+parser.add_argument("--reward_ratio",   type= int,    default= 1000)
 
-parser.add_argument("--learn_threshold",type= int,      default= 5)
+parser.add_argument("--learn_threshold",type= int,      default= 200)
 parser.add_argument("--decay",          type= float,    default= 0.045)
 parser.add_argument("--learning_rate",  type= float,    default= 0.5)
-parser.add_argument("--reward_ratio",   type= float,    default= 1000)
 parser.add_argument("--init_epsilon",   type= float,    default= 0.8)
 parser.add_argument("--epsilon",        type= float,    default= 0.05)
 parser.add_argument("--GAMMA",          type= float,    default= 0.97)
@@ -171,16 +171,23 @@ class Agent():
         state = np.array2string(state, max_line_width = args.state_len,separator = '')[1:-1]
         next_state = np.array2string(next_state, max_line_width = args.state_len,separator = '')[1:-1]
 
-        self.qtable[state][action] = \
-               self.qtable[state][action] *(1 - self.learning_rate) \
+        #print(self.qtable.get(state, "None"))
+        self.qtable[state][action] = self.qtable[state][action] *(1 - self.learning_rate) \
              + self.learning_rate * (reward * args.reward_ratio + self.gamma * max(self.qtable.setdefault(next_state, [0.]* self.env.action_space.n)))
+        '''
+        if self.qtable[state][0] or self.qtable[state][1] or self.qtable[state][2]:
+            print(self.qtable[state])
+            print(self.qtable[next_state])
+            print()
+        '''
         # End your code
 
         # You can add some conditions to decide when to save your table
         global max_count
         if done:
-            if np.mean(max_count) < count: 
+            if np.mean(max_count) <= count: 
                 np.save("./Tables/Qtable_Freeway.npy", self.qtable)
+                #print("table_saved")
 
             inx = np.argmin(max_count)
             if max_count[inx] < count: max_count[inx] = count
@@ -201,7 +208,7 @@ class Agent():
         # Begin your code
         state = self.discretize_observation(self.env.reset())
         state = np.array2string(state, max_line_width = args.state_len,separator = '')[1:-1]
-        max_q = np.max(self.qtable[state])
+        max_q = np.max(self.qtable.setdefault(state, [0.] * self.env.action_space.n))
         return max_q
         # End your code
 
@@ -225,7 +232,8 @@ def train(env):
         done = False
         
         step += 1
-        if step > args.learn_threshold: training_agent.epsilon = args.epsilon
+        if step > args.learn_threshold: 
+            training_agent.epsilon = args.epsilon
 
         count = 0
         while True:
@@ -233,7 +241,9 @@ def train(env):
             next_observation, reward, done, _ = env.step(action)
 
             next_state = training_agent.discretize_observation(next_observation)
-            if reward: count += 1
+            if reward: 
+                count += 1
+                #print("hit the road")
 
             training_agent.learn(state, action, reward, next_state, done, count)
 
@@ -267,17 +277,17 @@ def test(env):
     testing_agent = Agent(env)
 
     # Change the filename to your student id
-    testing_agent.qtable = np.load("./Tables/Qtable_Freeway.npy", allow_pickle = True)
+    testing_agent.qtable = np.load("./Tables/Qtable_Freeway.npy", allow_pickle = True).item()
     rewards = []
 
     for _ in range(args.num_test):
         state = testing_agent.discretize_observation(testing_agent.env.reset())
-        state = np.array2string(state, max_line_width = args.state_len,separator = '')[1:-1]
         count = 0
         while True:
-            action = np.argmax(testing_agent.qtable[state])
+            state = np.array2string(state, max_line_width = args.state_len, separator = '')[1:-1]
+            action = np.argmax(testing_agent.qtable.setdefault(state, [0.] * testing_agent.env.action_space.n))
             next_observation, reward, done, _ = testing_agent.env.step(action)
-            if reward == 1: count += 1
+            if reward: count += 1
             next_state = testing_agent.discretize_observation(next_observation)
 
             if done == True:
@@ -305,7 +315,7 @@ if __name__ == "__main__":
     # Please change to the assigned seed number in the Google sheet
     SEED = args.seed
 
-    env = gym.make('Freeway-v4', obs_type = 'ram')#, render_mode='human'
+    env = gym.make('Freeway-v4', obs_type = 'ram',  render_mode='human')
     seed(SEED)
     env.seed(SEED)
     env.action_space.seed(SEED)
@@ -314,11 +324,11 @@ if __name__ == "__main__":
         os.mkdir("./Tables")
 
     # training section:
-    #'''
+    '''
     for i in range(args.num_train):
         print(f"#{i + 1} training progress")
         train(env)
-    #'''
+    '''
     # testing section:
     test(env)
 
