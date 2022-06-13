@@ -116,7 +116,7 @@ class Agent():
 
         return action
 
-    def learn(self, state, action, reward, next_state, done, count):
+    def learn(self, state, action, reward, next_state, done, count, ep):
         """
         Calculate the new q-value base on the reward and state transformation observered after taking the action.
 
@@ -141,7 +141,7 @@ class Agent():
         # Conditions to decide when to save your table
         global max_count
         if done:
-            if np.mean(max_count) <= count:
+            if np.mean(max_count) <= count and ep >= args.learn_threshold:
                 np.save("./Train_data/Qlearning/tables/" +
                         args.file + ".npy", self.qtable)
                 print(f"save table whose score is {count}")
@@ -192,7 +192,7 @@ def train(env):
                 count += 1
 
             training_agent.learn(state, action, reward,
-                                 next_state, done, count)
+                                 next_state, done, count, ep)
 
             if done:
                 if step > args.learn_threshold:
