@@ -1,6 +1,6 @@
 # 2022NYCU-AI-Final-Project
 ## Overview
   
-## coding environment
-  package version
-  
+## environment
+Run the following command to set the environment of Atari Freeway
+    pip install  
