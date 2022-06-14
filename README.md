@@ -20,7 +20,7 @@ Run the following command to perform DQN training process:
 `python DQN_train.py`
 
 ## Parameters
-Run the following command to modify and check the imformation of parameters: 
+Run the following command to modify and check the imformation of parameters:                       
 `python DQN_train.py -h`  and  `python Qlearning_train.py -h`
 
 
