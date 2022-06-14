@@ -10,13 +10,15 @@ Run the following command to set the environment of Atari Freeway
 `pip install gym[atari]`  
 `pip install ale-py`
 
+## Execution
 
+Run the following command to perform Q-learning
+``
 
 ## Parameters
 Run the following command to modify and check the imformation of parameters  
 `python DQN_train.py -h` and `python Qlearning_train.py -h`
 
-### Agent's performence under different parameters
 
 
 ## Contributions
