@@ -8,15 +8,15 @@ Among the algorithms in reinforcement learning, we chose Q-learning and DQN to t
 ## Environment
 Run the following command to set the environment of Atari Freeway  
 `pip install gym[atari]`  
+`pip install ale-py`
 
-## Execution 
 
 
 ## Parameters
 Run the following command to modify and check the imformation of parameters  
 `python DQN_train.py -h` and `python Qlearning_train.py -h`
 
-
+### Agent's performence under different parameters
 
 
 ## Contributions
