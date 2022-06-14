@@ -13,7 +13,9 @@ Run the following command to set the environment of Atari Freeway
 ## Execution
 
 Run the following command to perform Q-learning
-``
+`python Qlearning_train.py`
+Run the following command to perform DQN
+`python DQN_train.py`
 
 ## Parameters
 Run the following command to modify and check the imformation of parameters  
